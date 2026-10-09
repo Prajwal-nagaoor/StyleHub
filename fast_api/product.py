@@ -30,6 +30,7 @@ def get_optional_user(
         return user
     except JWTError:
         return None
+    
 pro = APIRouter(prefix="/product",tags=["prodcut"])
 @pro.post("/create-product",response_model=ProductResponse)
 def create_product(product_data :ProductRequest ,db:Session=Depends(get_db), current_user:Session=Depends(get_current_user)):
@@ -63,6 +64,7 @@ def create_product(product_data :ProductRequest ,db:Session=Depends(get_db), cur
     db.refresh(new_product)
 
     return new_product
+
 @pro.get('get-product')
 def view_single_prodcut(product_id:int, db:Session=Depends(get_db)):
     product = db.query(Product).filter(
@@ -96,3 +98,33 @@ def view_product(db:Session=Depends(get_db), current_user:User=Depends(get_optio
         products= db.query(Product).all()
 
         return products
+@pro.put("/update-product",response_model=ProductResponse)
+def update_product(product_id:int,product_data:ProductRequest,db:Session=Depends(get_db), current_user:User=Depends(get_optional_user)):
+    if current_user and current_user.role in ['seller','admin']:
+        product = db.query(Product).filter(
+            Product.id == product_id
+        ).first()
+
+        if not product:
+            raise HTTPException(
+                status_code=400,
+                detail="Product not found"
+            )
+
+        product.product_name = product_data.product_name
+        product.product_desc = product_data.product_desc
+        product.product_price = product_data.product_price
+        product.category = product_data.category
+        product.stock = product_data.stock
+
+        db.commit()
+        db.refresh(product)
+
+        return product
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="you are not allowed to update the product"
+        )
+
+        
