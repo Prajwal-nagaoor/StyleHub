@@ -10,7 +10,7 @@ class User(Base):
     email = Column(String(50), nullable=False)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=True)
-    role = Column(String(20), nullable=True, default="customer")
+    role = Column(String(20), nullable=False, default="customer")
 
 class Product(Base):
     __tablename__ = "Product"

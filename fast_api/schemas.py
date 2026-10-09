@@ -6,6 +6,7 @@ class RegistrationRequest(BaseModel):
     email : EmailStr
     first_name : str
     last_name : str
+    role : str
 class RegistrationResponse(BaseModel):
     id : int
     username : str
@@ -13,6 +14,7 @@ class RegistrationResponse(BaseModel):
     email : EmailStr
     first_name : str
     last_name : str
+    role : str
 class LoginRequest(BaseModel):
     username :str
     password : str
@@ -25,4 +27,20 @@ class ProfileResponse(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str | None = None
+
+class ProductRequest(BaseModel):
+    product_name : str
+    product_desc : str
+    product_price : int
+    category : str
+    stock : int
+
+class ProductResponse(BaseModel):
+    id : int
+    user_id :int
+    product_name : str
+    product_desc : str
+    product_price : int
+    category : str
+    stock : int
 

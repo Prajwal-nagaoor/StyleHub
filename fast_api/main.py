@@ -4,8 +4,12 @@ from .database import Base,engine, get_db
 from .model import User
 from .schemas import RegistrationRequest,RegistrationResponse, LoginRequest, ProfileResponse
 from .auth import hast_password, verify_password, create_access_token,get_current_user
+from .product import pro as pro_router
+
+
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
+app.include_router(pro_router)
 @app.get("/")
 def home():
     return {
@@ -27,14 +31,18 @@ def register(registr_data:RegistrationRequest,db:Session=Depends(get_db)):
             status_code=403,
             detail="Username already exists"
         )
-        
-   
+    if registr_data.role not in ['seller','customer','admin']:
+        raise HTTPException(
+            status_code=400,
+            detail="role must be seller or customer admin"
+        )
     new_user = User(
             username = registr_data.username,
             email = registr_data.email,
             first_name = registr_data.first_name,
             last_name = registr_data.last_name,
-            password = hast_password(registr_data.password)
+            password = hast_password(registr_data.password),
+            role = registr_data.role
         )
     db.add(new_user)
     db.commit()
