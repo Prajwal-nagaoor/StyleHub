@@ -153,6 +153,6 @@ def delete_product(product_id:int, db:Session=Depends(get_db), current_user:User
             detail="You are not allowed to delete the product"
         )
 
-
+   
 
         
