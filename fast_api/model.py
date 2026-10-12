@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DECIMAL
+from sqlalchemy import Column, String, Integer, ForeignKey, DECIMAL, DateTime
+from datetime import datetime
 from .database import Base
 from sqlalchemy.orm import relationship
 class User(Base):
@@ -33,6 +34,33 @@ class Cart(Base):
     product_id = Column(Integer, ForeignKey("Product.id"), nullable=False)
     product_name = Column(String(200), nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
+
+class Order(Base):
+
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    total_payment = Column(DECIMAL(10,2), nullable=False, default=0)
+    payment_statuss = Column(String(20), nullable=False, default="Pending")
+    order_statuss = Column(String(20), nullable=False, default="Pending")
+    createat = Column(DateTime, default=datetime.now, nullable=False)
+
+    user = relationship(User)
+class orderitem(Base):
+
+    __tablename__ = "orderitem"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("Product.id"), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    price = Column(DECIMAL(10,2), nullable=False, default=0)
+    total_price = Column(DECIMAL(10,2), nullable=False, default=0)
+
+    order = relationship(Order)
+    product = relationship(Product)
+
 
 
 
