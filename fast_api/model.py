@@ -42,9 +42,9 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     total_payment = Column(DECIMAL(10,2), nullable=False, default=0)
-    payment_statuss = Column(String(20), nullable=False, default="Pending")
-    order_statuss = Column(String(20), nullable=False, default="Pending")
-    createat = Column(DateTime, default=datetime.now, nullable=False)
+    payment_status = Column(String(20), nullable=False, default="Pending")
+    order_status = Column(String(20), nullable=False, default="Pending")
+    createat = Column(DateTime, default=datetime.now, nullable=True)
 
     user = relationship(User)
 class orderitem(Base):

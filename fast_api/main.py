@@ -6,11 +6,13 @@ from .schemas import RegistrationRequest,RegistrationResponse, LoginRequest, Pro
 from .auth import hast_password, verify_password, create_access_token,get_current_user
 from .product import pro as pro_router
 from .cart import cart as cart_router
+from .order import order as order_router
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.include_router(pro_router)
 app.include_router(cart_router)
+app.include_router(order_router)
 @app.get("/")
 def home():
     return {

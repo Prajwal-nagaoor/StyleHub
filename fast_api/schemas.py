@@ -1,4 +1,6 @@
 from pydantic import BaseModel,EmailStr,ConfigDict
+from datetime import datetime
+from decimal import Decimal
 
 class RegistrationRequest(BaseModel):
     username : str
@@ -54,3 +56,13 @@ class add_cart_response(BaseModel):
     product_id : int
     product_name : str
     quantity:int
+
+class orderresponse(BaseModel):
+    id :int
+    user_id : int
+    total_payment : Decimal
+    payment_status : str
+    order_status : str
+    createat: datetime
+
+    model_config = ConfigDict(from_attributes=True)
