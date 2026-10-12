@@ -25,4 +25,14 @@ class Product(Base):
 
     user = relationship("User")
 
+class Cart(Base):
+    __tablename__ = "cart"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("Product.id"), nullable=False)
+    product_name = Column(String(200), nullable=False)
+    quantity = Column(Integer, nullable=False, default=1)
+
+
 

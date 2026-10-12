@@ -44,3 +44,13 @@ class ProductResponse(BaseModel):
     category : str
     stock : int
 
+class add_cart(BaseModel):
+    product_id : int
+    quantity : int
+
+class add_cart_response(BaseModel):
+    id : int
+    user_id :int
+    product_id : int
+    product_name : str
+    quantity:int

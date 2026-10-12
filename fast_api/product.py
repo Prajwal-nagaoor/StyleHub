@@ -126,5 +126,33 @@ def update_product(product_id:int,product_data:ProductRequest,db:Session=Depends
             status_code=400,
             detail="you are not allowed to update the product"
         )
+@pro.delete("/delete-product")
+def delete_product(product_id:int, db:Session=Depends(get_db), current_user:User=Depends(get_optional_user)):
+    try:
+        if current_user and current_user.role in ['seller','admin']:
+            product = db.query(Product).filter(
+                Product.id == product_id
+            ).first()
+
+            if not product:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Product not found"
+                )
+            db.delete(product)
+            db.commit()
+
+            return {
+                "Message":"Product deleted successfully",
+                "Product id":product_id,
+                "Product Name":product.product_name
+            }
+    except:
+        raise HTTPException(
+            status_code=400,
+            detail="You are not allowed to delete the product"
+        )
+
+
 
         
