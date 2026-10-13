@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>StyleHub Test Checkout</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            cursor: pointer;
+        }
+        #message { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>StyleHub Test Checkout</h2>
+
+    <label for="clientSecret">Payment client secret</label>
+    <input id="clientSecret" type="password"
+           autocomplete="off"
+           style="width:100%; box-sizing:border-box; padding:10px; margin-top:8px"
+           placeholder="Paste the client_secret from Swagger">
+
+    <div id="payment-element" style="margin-top:24px"></div>
+    <button id="payButton" disabled>Loading payment form...</button>
+    <div id="message" role="status"></div>
+
+    <script>
+        const stripe = Stripe("pk_test_51UNoEBFoAYjURbuHL9EHYf1B8sdYMR0pqTcf3CnKg7PJkBSXhOOEDTrr3ommrUskdencZT4r7SRPZnYsHqai9FTL00wnqFZv2f");
+
+        const secretInput = document.getElementById("clientSecret");
+        const paymentElement = document.getElementById("payment-element");
+        const payButton = document.getElementById("payButton");
+        const message = document.getElementById("message");
+
+        let elements;
+
+        secretInput.addEventListener("change", async () => {
+            const clientSecret = secretInput.value.trim();
+
+            if (!clientSecret.startsWith("pi_") ||
+                !clientSecret.includes("_secret_")) {
+                message.textContent = "Please enter a valid client secret.";
+                return;
+            }
+
+            payButton.disabled = true;
+            message.textContent = "Loading payment form...";
+
+            try {
+                elements = stripe.elements({ clientSecret });
+                paymentElement.replaceChildren();
+
+                const element = elements.create("payment");
+                element.mount("#payment-element");
+
+                element.on("ready", () => {
+                    payButton.disabled = false;
+                    payButton.textContent = "Pay securely";
+                    message.textContent = "";
+                });
+
+                element.on("loaderror", () => {
+                    message.textContent = "Could not load payment form.";
+                });
+            } catch (error) {
+                message.textContent = error.message;
+            }
+        });
+
+        payButton.addEventListener("click", async () => {
+            if (!elements) return;
+
+            payButton.disabled = true;
+            message.textContent = "Confirming test payment...";
+
+            const { error, paymentIntent } = await stripe.confirmPayment({
+                elements,
+                redirect: "if_required"
+            });
+
+            if (error) {
+                message.textContent = error.message;
+                payButton.disabled = false;
+                return;
+            }
+
+            message.textContent = "Payment status: " +
+                (paymentIntent?.status || "Check Stripe Dashboard");
+        });
+    </script>
+</body>
+</html>

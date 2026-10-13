@@ -7,12 +7,20 @@ from .auth import hast_password, verify_password, create_access_token,get_curren
 from .product import pro as pro_router
 from .cart import cart as cart_router
 from .order import order as order_router
+from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.include_router(pro_router)
 app.include_router(cart_router)
 app.include_router(order_router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.get("/")
 def home():
     return {
