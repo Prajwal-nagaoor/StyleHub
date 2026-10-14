@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, UploadFile,File
 from sqlalchemy.orm import Session
 from .database import Base,engine, get_db
 from .model import User
@@ -8,9 +8,23 @@ from .product import pro as pro_router
 from .cart import cart as cart_router
 from .order import order as order_router
 from fastapi.middleware.cors import CORSMiddleware
-
+# upload image
+import os
+import uuid
+import shutil
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
+# Serve existing product uploads to the React frontend.
+UPLOAD_DIR = (Path(__file__).resolve().parent.parent / 'uploads').resolve()
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+app.mount('/uploads', StaticFiles(directory=str(UPLOAD_DIR)), name='uploads')
+# upload image
+# UPLOAD_DIR = Path('uploads')
+# UPLOAD_DIR.mkdir(exist_ok=True)
+
+# app.mount("uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 app.include_router(pro_router)
 app.include_router(cart_router)
 app.include_router(order_router)
@@ -103,6 +117,37 @@ def get_profile(
         "last_name": current_user.last_name
     }
 
+# @app.post("/upload-product-image")
+# async def upload_product_image(file: UploadFile = File(...)):
+#     allowed_types = ["image/jpeg", "image/png", "image/webp"]
+
+#     if file.content_type not in allowed_types:
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Only JPG, PNG, and WEBP images are allowed"
+#         )
+
+#     extension = Path(file.filename or "").suffix.lower()
+
+#     if extension not in [".jpg", ".jpeg", ".png", ".webp"]:
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Invalid image extension"
+#         )
+
+#     filename = f"{uuid.uuid4().hex}{extension}"
+#     file_path = UPLOAD_DIR / filename
+
+#     try:
+#         with file_path.open("wb") as buffer:
+#             shutil.copyfileobj(file.file, buffer)
+#     finally:
+#         await file.close()
+
+#     return {
+#         "message": "Image uploaded successfully",
+#         "image_url": f"/uploads/{filename}"
+#     }
     
     
 

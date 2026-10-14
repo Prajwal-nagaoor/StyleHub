@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Depends, APIRouter, status
+from fastapi import HTTPException, Depends, APIRouter, status, Form, UploadFile,File
 from sqlalchemy.orm import Session
 from .model import User, Product
 from  .database import get_db
@@ -6,7 +6,8 @@ from .auth import get_current_user, SECRET_KEY,ALGORITHM
 from .schemas import ProductRequest, ProductResponse
 from jose import jwt, JWTError
 from fastapi.security import HTTPBearer,HTTPAuthorizationCredentials
-
+import os
+import shutil
 security = HTTPBearer(auto_error=False)
 def get_optional_user(
         credentials:HTTPAuthorizationCredentials=Depends(security),
@@ -33,13 +34,18 @@ def get_optional_user(
     
 pro = APIRouter(prefix="/product",tags=["prodcut"])
 @pro.post("/create-product",response_model=ProductResponse)
-def create_product(product_data :ProductRequest ,db:Session=Depends(get_db), current_user:Session=Depends(get_current_user)):
+def create_product(product_name: str = Form(...),
+    product_desc: str = Form(...),
+    product_price: float = Form(...),
+    category: str = Form(...),
+    stock: int = Form(...),
+    image: UploadFile = File(...),db:Session=Depends(get_db), current_user:Session=Depends(get_current_user)):
     if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not Authorized"
         )
-    if not product_data.product_name or not product_data.product_desc or not product_data.product_price or not product_data.category or not product_data.stock:
+    if not product_name or not product_desc or not product_price or not category or not stock:
         raise HTTPException(
             status_code=400,
             detail="all fields mush be filed"
@@ -49,13 +55,21 @@ def create_product(product_data :ProductRequest ,db:Session=Depends(get_db), cur
             status_code=400,
             detail="Our not allowed to add product"
         )
+    upload_dir = "uploads/products"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    file_path = os.path.join(upload_dir, image.filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(image.file, buffer)
     new_product = Product(
         user_id = current_user.id,
-        product_name = product_data.product_name,
-        product_desc = product_data.product_desc,
-        product_price = product_data.product_price,
-        category = product_data.category,
-        stock = product_data.stock,
+        product_name = product_name,
+        product_desc = product_desc,
+        product_price = product_price,
+        product_image = file_path,
+        category = category,
+        stock = stock,
         
     )
 

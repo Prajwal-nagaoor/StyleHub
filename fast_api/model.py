@@ -21,6 +21,7 @@ class Product(Base):
     product_name = Column(String(200), nullable=False)
     product_desc = Column(String(500), nullable=False)
     product_price = Column(DECIMAL(10,2),nullable=False, default=0)
+    product_image = Column(String(255), nullable=True)
     category = Column(String(200), nullable=False)
     stock = Column(Integer, nullable=False, default=0)
 

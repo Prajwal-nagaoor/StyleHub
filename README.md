@@ -58,9 +58,9 @@ Set `VITE_API_BASE_URL` in `frontend/.env` if your API uses a different local ad
 
 The frontend intentionally uses the route paths present in the supplied backend. Some backend route decorators currently concatenate paths without a slash (for example, the product-list route). The frontend maps to those existing paths rather than modifying backend code. If a backend route is later corrected, update `src/api.js` accordingly.
 
-The backend currently calculates order totals using the last cart item rather than the sum of all cart items. That issue was left untouched to respect the request not to change backend files. Test with care and correct the backend separately when you are ready.
+Order totals now add all cart line totals together.
 
-The checkout UI can create a PaymentIntent and collect Stripe test payment details when the publishable key is configured. Successful payment-status updates still depend on the backend webhook and Stripe CLI listener being configured correctly.
+Product images are served from the existing `uploads/` folder at `/uploads/...`. After Stripe.js reports a successful payment, the frontend calls the authenticated `/order/confirm-payment` endpoint; the backend retrieves and verifies the PaymentIntent before setting the order to `Paid`. The webhook remains a backup for asynchronous Stripe events.
 
 ## Included files and safety
 

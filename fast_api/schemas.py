@@ -38,6 +38,8 @@ class ProductRequest(BaseModel):
     stock : int
 
 class ProductResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id : int
     user_id :int
     product_name : str
@@ -45,6 +47,7 @@ class ProductResponse(BaseModel):
     product_price : int
     category : str
     stock : int
+    product_image: str | None = None
 
 class add_cart(BaseModel):
     product_id : int
@@ -66,3 +69,8 @@ class orderresponse(BaseModel):
     createat: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PaymentConfirmationRequest(BaseModel):
+    order_id: int
+    payment_intent_id: str

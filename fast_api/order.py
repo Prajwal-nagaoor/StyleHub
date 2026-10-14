@@ -3,7 +3,7 @@ from .database import get_db
 from .model import User,Product,Cart,Order,orderitem
 from sqlalchemy.orm import Session
 from .auth import get_current_user
-from .schemas import orderresponse
+from .schemas import orderresponse, PaymentConfirmationRequest
 # stripe
 import os
 import stripe
@@ -41,7 +41,7 @@ def create_order(db:Session=Depends(get_db), current_user:User=Depends(get_curre
                 detail="Not enough stock available"
             )
 
-        total_amount = product.product_price * i.quantity
+        total_amount += product.product_price * i.quantity
     new_order = Order(
         user_id = current_user.id,
         total_payment = total_amount,
@@ -214,6 +214,45 @@ def create_payment_intent(
             status_code=502,
             detail="Stripe could not create the payment request",
         ) from exc
+
+
+@order.post("/confirm-payment")
+def confirm_payment(
+    payment_data: PaymentConfirmationRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Confirm a completed PaymentIntent directly after Stripe.js succeeds.
+    The webhook remains enabled as a reliable asynchronous backup.
+    """
+    customer_order = (
+        db.query(Order)
+        .filter(Order.id == payment_data.order_id, Order.user_id == current_user.id)
+        .first()
+    )
+    if not customer_order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    try:
+        intent = stripe.PaymentIntent.retrieve(payment_data.payment_intent_id)
+    except stripe.StripeError as exc:
+        raise HTTPException(status_code=502, detail="Unable to verify payment with Stripe") from exc
+
+    metadata = intent.get("metadata") or {}
+    if str(metadata.get("order_id")) != str(customer_order.id) or str(metadata.get("user_id")) != str(current_user.id):
+        raise HTTPException(status_code=400, detail="Payment does not belong to this order")
+
+    expected_amount = int(customer_order.total_payment * 100)
+    if intent.get("amount") != expected_amount or intent.get("currency", "").lower() != "inr":
+        raise HTTPException(status_code=400, detail="Payment amount or currency does not match the order")
+
+    if intent.get("status") != "succeeded":
+        return {"updated": False, "payment_status": customer_order.payment_status, "stripe_status": intent.get("status")}
+
+    customer_order.payment_status = "Paid"
+    db.commit()
+    db.refresh(customer_order)
+    return {"updated": True, "order_id": customer_order.id, "payment_status": customer_order.payment_status}
 
 
 @order.post("/stripe-webhook")
